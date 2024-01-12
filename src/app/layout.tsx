@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
+import { draftMode } from "next/headers";
+import { client } from "@/api";
+import { LayoutQuery } from "@/api/queries";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -14,21 +18,12 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { time } = await fetch("http://localhost:3000/api/layout", {
-    headers: {
-      "content-type": "application/json",
-    },
-    next: {
-      revalidate: 5,
-    },
-  }).then((res) => res.json());
+  const { isEnabled } = draftMode();
+  await client.request(LayoutQuery, { isEnabled });
 
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <time>{time}</time>
-        {children}
-      </body>
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }

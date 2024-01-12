@@ -1,22 +1,25 @@
+import { client } from "@/api";
+import { ProductsListQuery } from "@/api/queries";
 import { Product } from "@/mocks";
+import { draftMode } from "next/headers";
 import Link from "next/link";
 
-export default async function Products() {
-  const products: Product[] = await fetch(
-    "http://localhost:3000/api/products",
+export default async function Page() {
+  const { isEnabled } = draftMode();
+  const { products } = await client.request<{ products: Product[] }>(
+    ProductsListQuery,
     {
-      headers: {
-        "content-type": "application/json",
-      },
-      next: {
-        revalidate: 5,
-      },
+      isEnabled,
     },
-  ).then((res) => res.json());
+  );
 
-  return products.map(({ slug }) => (
-    <Link key={slug} href={`products/${slug}`} prefetch={true}>
-      {slug}
-    </Link>
-  ));
+  return (
+    <div className="flex flex-col">
+      {products.map(({ slug }) => (
+        <Link href={`/products/${slug}`} key={slug}>
+          {slug}
+        </Link>
+      ))}
+    </div>
+  );
 }
